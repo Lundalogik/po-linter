@@ -1,0 +1,11 @@
+name: 'po-linter'
+description: 'Checks for duplicate msgids in .po files to prevent translation issues.'
+author: 'Lime Technologies'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+
+branding:
+  icon: 'check-circle'
+  color: 'green'
