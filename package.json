@@ -1,15 +1,28 @@
 {
-  "name": "po-linter",
+  "name": "@limetech/po-linter",
   "version": "1.0.0",
   "description": "Checks for duplicate msgids in .po files to prevent translation issues.",
   "main": "index.js",
+  "bin": {
+    "po-linter": "index.js"
+  },
   "scripts": {
-    "build": "ncc build index.js --license licenses.txt",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "ncc build index.js --license licenses.txt"
   },
   "keywords": [],
   "author": "Lime Technologies",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lundalogik/po-linter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Lundalogik/po-linter/issues"
+  },
+  "homepage": "https://github.com/Lundalogik/po-linter#readme",
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/glob": "^0.5.0",
