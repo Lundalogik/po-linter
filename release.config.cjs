@@ -31,5 +31,11 @@ module.exports = {
                 labels: false,
             },
         ],
+        [
+            'semantic-release-major-tag',
+            {
+                customTags: ['v${major}', 'v${major}.${minor}'],
+            }
+        ],
     ],
 };
