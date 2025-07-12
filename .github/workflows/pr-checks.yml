@@ -1,0 +1,35 @@
+name: Pull Request Checks
+on: pull_request
+
+concurrency:
+  # Only allow one active run of this workflow, per PR.
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
+      if: success() || failure()
+    - name: Block Autosquash Commits
+      if: success() || failure()
+      uses: xt0rted/block-autosquash-commits-action@79880c36b4811fe549cfffe20233df88876024e7 # v2.2.0
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+    - uses: ./.github/actions/set-up-node
+      if: success() || failure()
+    - run: npm ci
+      if: success() || failure()
+    - run: npm run lint --if-present
+      if: success() || failure()
+    - run: npm test --if-present
+      if: success() || failure()
+    - name: Build code
+      run: npm run build
+      if: success() || failure()
+    - name: Check that build artifacts are committed
+      run: git diff --exit-code
+      if: success()
