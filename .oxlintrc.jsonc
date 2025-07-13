@@ -30,5 +30,20 @@
     "unicorn/filename-case": ["error", {
       "case": "kebabCase"
     }]
-  }
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/*.spec.js"
+      ],
+      "rules": {
+        "eslint/init-declarations": "off",
+        "eslint/no-magic-numbers": "off",
+        "eslint/sort-keys": "off",
+        "eslint/sort-vars": "off",
+        "max-lines-per-function": "off",
+        "promise/prefer-await-to-callbacks": "off"
+      }
+    }
+  ]
 }
