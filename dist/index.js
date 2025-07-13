@@ -19,11 +19,11 @@ class PoLinter {
 
     escapeHtml(unsafe) {
         return unsafe
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+        .replaceAll("&", '&amp;')
+        .replaceAll("<", '&lt;')
+        .replaceAll(">", '&gt;')
+        .replaceAll("\"", '&quot;')
+        .replaceAll("'", '&#039;');
     }
 
     async reportSuccess() {
@@ -100,7 +100,7 @@ class PoLinter {
             const globber = await glob.create('**/*.po');
             const files = await globber.glob();
 
-            if (files.length === 0) {
+            if (0 === files.length) {
                 await this.reportNoFilesFound();
                 return;
             }
@@ -114,7 +114,7 @@ class PoLinter {
                 const duplicates = new Set();
 
                 for (const item of po.items) {
-                    if (item.msgid.length > 0) {
+                    if (0 < item.msgid.length) {
                         if (msgids.has(item.msgid)) {
                             duplicates.add(item.msgid);
                         } else {
@@ -123,7 +123,7 @@ class PoLinter {
                     }
                 }
 
-                if (duplicates.size > 0) {
+                if (0 < duplicates.size) {
                     allDuplicates.set(file, duplicates);
                     for (const msgid of duplicates) {
                         const message = `Duplicate msgid found in ${file}: "${msgid}"`;
@@ -134,7 +134,7 @@ class PoLinter {
                 }
             }
 
-            if (allDuplicates.size > 0) {
+            if (0 < allDuplicates.size) {
                 await this.reportFailure(allDuplicates);
             } else {
                 await this.reportSuccess();

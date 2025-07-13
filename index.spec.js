@@ -176,7 +176,7 @@ describe('po-linter', () => {
             });
 
             pofile.load.mockImplementation((file, callback) => {
-                callback(null, {
+                callback(undefined, {
                     items: [
                         { msgid: 'id1', msgstr: 'str1' },
                         { msgid: 'id2', msgstr: 'str2' },
@@ -196,7 +196,7 @@ describe('po-linter', () => {
                 glob: jest.fn().mockResolvedValue(['file1.po']),
             });
             pofile.load.mockImplementation((file, callback) => {
-                callback(null, {
+                callback(undefined, {
                     items: [
                         { msgid: 'id1', msgstr: 'str1' },
                         { msgid: 'id1', msgstr: 'str2' },
