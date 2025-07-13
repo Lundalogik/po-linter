@@ -1,107 +1,32 @@
 #!/usr/bin/env node
-const core = require('@actions/core');
 const glob = require('@actions/glob');
 const pofile = require('pofile');
 const { promisify } = require('util');
+const { GitHubActionsReporter, ConsoleReporter } = require('./reporters');
 
 const pofileLoad = promisify(pofile.load.bind(pofile));
 
-const EXIT_CODE_FAILURE = 1;
-const HEADING_LEVEL_2 = 2;
-
 class PoLinter {
     constructor() {
-        this.isGitHubActions = !!process.env.GITHUB_ACTIONS;
-    }
-
-    escapeHtml(unsafe) {
-        return unsafe
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#039;');
+        this.reporter = process.env.GITHUB_ACTIONS
+            ? new GitHubActionsReporter()
+            : new ConsoleReporter();
     }
 
     async reportSuccess() {
-        if (this.isGitHubActions) {
-            await core.summary
-                .addHeading('✅ No Duplicate `msgid`s Found')
-                .addRaw(
-                    'All `.po` files were checked and no duplicate `msgid`s were found.',
-                )
-                .write();
-            core.info('No duplicate msgids found.');
-        } else {
-            console.log('✅ No duplicate msgids found.');
-        }
+        await this.reporter.reportSuccess();
     }
 
     async reportFailure(allDuplicates) {
-        if (this.isGitHubActions) {
-            const summary = core.summary
-                .addHeading(
-                    `❌ Found duplicate msgid's in ${allDuplicates.size} file(s)`,
-                    HEADING_LEVEL_2,
-                )
-                .addRaw(
-                    `The following files contain duplicate \`msgid\` entries. This can cause issues with translations. Please resolve them.`,
-                )
-                .addSeparator();
-
-            for (const [file, duplicates] of allDuplicates.entries()) {
-                const listItems = [...duplicates]
-                    .map(
-                        (msgid) =>
-                            `<li><pre><code>${this.escapeHtml(msgid)}</code></pre></li>`,
-                    )
-                    .join('');
-                summary.addDetails(
-                    `\`${file}\` (${duplicates.size} duplicates)`,
-                    `<ul>${listItems}</ul>`,
-                );
-            }
-
-            await summary.write();
-            core.setFailed('Duplicate msgids found in one or more .po files.');
-        } else {
-            console.error(
-                `❌ Found duplicate msgid's in ${allDuplicates.size} file(s)`,
-            );
-            for (const [file, duplicates] of allDuplicates.entries()) {
-                console.error(`\n- ${file} (${duplicates.size} duplicates)`);
-                for (const msgid of duplicates) {
-                    console.error(`  - "${msgid}"`);
-                }
-            }
-            process.exit(EXIT_CODE_FAILURE);
-        }
+        await this.reporter.reportFailure(allDuplicates);
     }
 
     async reportFatalError(error) {
-        if (this.isGitHubActions) {
-            core.setFailed(error.message);
-            await core.summary
-                .addHeading('❗ Error')
-                .addRaw(
-                    'An unexpected error occurred while checking for duplicate `msgid`s.',
-                )
-                .addCodeBlock(error.stack || error.message, 'javascript')
-                .write();
-        } else {
-            console.error('❗ Error');
-            console.error(error);
-            process.exit(EXIT_CODE_FAILURE);
-        }
+        await this.reporter.reportFatalError(error);
     }
 
     async reportNoFilesFound() {
-        if (this.isGitHubActions) {
-            core.info('No .po files found.');
-            await core.summary.addHeading('No `.po` files found').write();
-        } else {
-            console.log('No .po files found.');
-        }
+        await this.reporter.reportNoFilesFound();
     }
 
     async findDuplicatesInFile(file) {
@@ -125,10 +50,7 @@ class PoLinter {
 
     reportDuplicates(file, duplicates) {
         for (const msgid of duplicates) {
-            const message = `Duplicate msgid found in ${file}: "${msgid}"`;
-            if (this.isGitHubActions) {
-                core.error(message);
-            }
+            this.reporter.reportDuplicate(file, msgid);
         }
     }
 

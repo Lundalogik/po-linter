@@ -2,112 +2,58 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 461:
+/***/ ((module) => {
+
+function escapeHtml(unsafe) {
+    return unsafe
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+module.exports = {
+    EXIT_CODE_FAILURE: 1,
+    HEADING_LEVEL_2: 2,
+    escapeHtml,
+};
+
+
+/***/ }),
+
 /***/ 6136:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const core = __nccwpck_require__(7484);
 const glob = __nccwpck_require__(7206);
 const pofile = __nccwpck_require__(1414);
 const { promisify } = __nccwpck_require__(9023);
+const { GitHubActionsReporter, ConsoleReporter } = __nccwpck_require__(3657);
 
 const pofileLoad = promisify(pofile.load.bind(pofile));
 
-const EXIT_CODE_FAILURE = 1;
-const HEADING_LEVEL_2 = 2;
-
 class PoLinter {
     constructor() {
-        this.isGitHubActions = !!process.env.GITHUB_ACTIONS;
-    }
-
-    escapeHtml(unsafe) {
-        return unsafe
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#039;');
+        this.reporter = process.env.GITHUB_ACTIONS
+            ? new GitHubActionsReporter()
+            : new ConsoleReporter();
     }
 
     async reportSuccess() {
-        if (this.isGitHubActions) {
-            await core.summary
-                .addHeading('✅ No Duplicate `msgid`s Found')
-                .addRaw(
-                    'All `.po` files were checked and no duplicate `msgid`s were found.',
-                )
-                .write();
-            core.info('No duplicate msgids found.');
-        } else {
-            console.log('✅ No duplicate msgids found.');
-        }
+        await this.reporter.reportSuccess();
     }
 
     async reportFailure(allDuplicates) {
-        if (this.isGitHubActions) {
-            const summary = core.summary
-                .addHeading(
-                    `❌ Found duplicate msgid's in ${allDuplicates.size} file(s)`,
-                    HEADING_LEVEL_2,
-                )
-                .addRaw(
-                    `The following files contain duplicate \`msgid\` entries. This can cause issues with translations. Please resolve them.`,
-                )
-                .addSeparator();
-
-            for (const [file, duplicates] of allDuplicates.entries()) {
-                const listItems = [...duplicates]
-                    .map(
-                        (msgid) =>
-                            `<li><pre><code>${this.escapeHtml(msgid)}</code></pre></li>`,
-                    )
-                    .join('');
-                summary.addDetails(
-                    `\`${file}\` (${duplicates.size} duplicates)`,
-                    `<ul>${listItems}</ul>`,
-                );
-            }
-
-            await summary.write();
-            core.setFailed('Duplicate msgids found in one or more .po files.');
-        } else {
-            console.error(
-                `❌ Found duplicate msgid's in ${allDuplicates.size} file(s)`,
-            );
-            for (const [file, duplicates] of allDuplicates.entries()) {
-                console.error(`\n- ${file} (${duplicates.size} duplicates)`);
-                for (const msgid of duplicates) {
-                    console.error(`  - "${msgid}"`);
-                }
-            }
-            process.exit(EXIT_CODE_FAILURE);
-        }
+        await this.reporter.reportFailure(allDuplicates);
     }
 
     async reportFatalError(error) {
-        if (this.isGitHubActions) {
-            core.setFailed(error.message);
-            await core.summary
-                .addHeading('❗ Error')
-                .addRaw(
-                    'An unexpected error occurred while checking for duplicate `msgid`s.',
-                )
-                .addCodeBlock(error.stack || error.message, 'javascript')
-                .write();
-        } else {
-            console.error('❗ Error');
-            console.error(error);
-            process.exit(EXIT_CODE_FAILURE);
-        }
+        await this.reporter.reportFatalError(error);
     }
 
     async reportNoFilesFound() {
-        if (this.isGitHubActions) {
-            core.info('No .po files found.');
-            await core.summary.addHeading('No `.po` files found').write();
-        } else {
-            console.log('No .po files found.');
-        }
+        await this.reporter.reportNoFilesFound();
     }
 
     async findDuplicatesInFile(file) {
@@ -131,10 +77,7 @@ class PoLinter {
 
     reportDuplicates(file, duplicates) {
         for (const msgid of duplicates) {
-            const message = `Duplicate msgid found in ${file}: "${msgid}"`;
-            if (this.isGitHubActions) {
-                core.error(message);
-            }
+            this.reporter.reportDuplicate(file, msgid);
         }
     }
 
@@ -28709,6 +28652,137 @@ webidl.converters.WebSocketSendData = function (V) {
 module.exports = {
   WebSocket
 }
+
+
+/***/ }),
+
+/***/ 1113:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const { EXIT_CODE_FAILURE } = __nccwpck_require__(461);
+class ConsoleReporter {
+    reportSuccess() {
+        console.log('✅ No duplicate msgids found.');
+    }
+
+    reportNoFilesFound() {
+        console.log('No .po files found.');
+    }
+
+    reportFailure(allDuplicates) {
+        console.error(
+            `❌ Found duplicate msgid's in ${allDuplicates.size} file(s)`,
+        );
+        for (const [file, duplicates] of allDuplicates.entries()) {
+            console.error(`\n- ${file} (${duplicates.size} duplicates)`);
+            for (const msgid of duplicates) {
+                console.error(`  - "${msgid}"`);
+            }
+        }
+        process.exit(EXIT_CODE_FAILURE);
+    }
+
+    reportFatalError(error) {
+        console.error('❗ Error');
+        console.error(error);
+        process.exit(EXIT_CODE_FAILURE);
+    }
+
+    reportDuplicate() {
+        // We report all duplicates at the end, so we don't need to do anything here.
+    }
+}
+
+module.exports = ConsoleReporter;
+
+
+/***/ }),
+
+/***/ 2294:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(7484);
+const {
+    HEADING_LEVEL_2,
+    escapeHtml,
+} = __nccwpck_require__(461);
+class GitHubActionsReporter {
+    async reportSuccess() {
+        await core.summary
+            .addHeading('✅ No Duplicate `msgid`s Found')
+            .addRaw(
+                'All `.po` files were checked and no duplicate `msgid`s were found.',
+            )
+            .write();
+        core.info('No duplicate msgids found.');
+    }
+
+    async reportNoFilesFound() {
+        core.info('No .po files found.');
+        await core.summary.addHeading('No `.po` files found').write();
+    }
+
+    async reportFailure(allDuplicates) {
+        const summary = core.summary
+            .addHeading(
+                `❌ Found duplicate msgid's in ${allDuplicates.size} file(s)`,
+                HEADING_LEVEL_2,
+            )
+            .addRaw(
+                `The following files contain duplicate \`msgid\` entries. This can cause issues with translations. Please resolve them.`,
+            )
+            .addSeparator();
+
+        for (const [file, duplicates] of allDuplicates.entries()) {
+            const listItems = [...duplicates]
+                .map(
+                    (msgid) =>
+                        `<li><pre><code>${escapeHtml(msgid)}</code></pre></li>`,
+                )
+                .join('');
+            summary.addDetails(
+                `\`${file}\` (${duplicates.size} duplicates)`,
+                `<ul>${listItems}</ul>`,
+            );
+        }
+
+        await summary.write();
+        core.setFailed('Duplicate msgids found in one or more .po files.');
+    }
+
+    async reportFatalError(error) {
+        core.setFailed(error.message);
+        await core.summary
+            .addHeading('❗ Error')
+            .addRaw(
+                'An unexpected error occurred while checking for duplicate `msgid`s.',
+            )
+            .addCodeBlock(error.stack || error.message, 'javascript')
+            .write();
+    }
+
+    reportDuplicate(file, msgid) {
+        const message = `Duplicate msgid found in ${file}: "${msgid}"`;
+        core.error(message);
+    }
+}
+
+module.exports = GitHubActionsReporter;
+
+
+/***/ }),
+
+/***/ 3657:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+const ConsoleReporter = __nccwpck_require__(1113);
+const GitHubActionsReporter = __nccwpck_require__(2294);
+
+module.exports = {
+    ConsoleReporter,
+    GitHubActionsReporter,
+};
 
 
 /***/ }),
