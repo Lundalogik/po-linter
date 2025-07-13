@@ -15,7 +15,7 @@
   "scripts": {
     "build": "ncc build index.js --license licenses.txt",
     "start": "npm run build",
-    "test": "echo \"No tests configured\" && exit 0"
+    "test": "jest"
   },
   "keywords": [],
   "author": "Lime Technologies",
