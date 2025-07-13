@@ -56,7 +56,14 @@ class PoLinter {
 
     async main() {
         try {
-            const globber = await glob.create('**/*.po');
+            const patterns = [
+                '**/*.po',
+                '!**/.git/**',
+                '!**/.github/**',
+                '!**/.venv/**',
+                '!**/node_modules/**',
+            ].join('\n');
+            const globber = await glob.create(patterns);
             const files = await globber.glob();
 
             if (0 === files.length) {
