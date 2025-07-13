@@ -1,0 +1,34 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "import",
+    "node",
+    "oxc",
+    "promise",
+    "unicorn"
+  ],
+  "env": {
+    "node": true
+  },
+  "globals": {},
+  "settings": {},
+  "categories": {
+    "correctness": "error", // Code that is outright wrong or useless.
+    "pedantic": "error", // Lints which are rather strict or have occasional false positives.
+    "perf": "error", // Code that can be written to run faster.
+    "style": "error", // Code that should be written in a more idiomatic way.
+    "suspicious": "error", // Code that is most likely wrong or useless.
+
+    "nursery": "off", // New lints that are still under development.
+    "restriction": "off" // Lints which prevent the use of language and library features. Must not be enabled as a whole, should be considered on a case-by-case basis before enabling.
+  },
+  "rules": {
+    "eslint/func-style": ["error", "declaration", { "allowArrowFunctions": true }],
+    "eslint/no-magic-numbers": ["error", { "ignore": [0] }],
+    "eslint/no-ternary": "off",
+    "unicorn/explicit-length-check": "off",
+    "unicorn/filename-case": ["error", {
+      "case": "kebabCase"
+    }]
+  }
+}
