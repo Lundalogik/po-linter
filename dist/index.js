@@ -28663,7 +28663,7 @@ module.exports = {
 
 /***/ }),
 
-/***/ 1113:
+/***/ 7092:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const { EXIT_CODE_FAILURE } = __nccwpck_require__(461);
@@ -28705,14 +28705,11 @@ module.exports = ConsoleReporter;
 
 /***/ }),
 
-/***/ 2294:
+/***/ 1424:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(7484);
-const {
-    HEADING_LEVEL_2,
-    escapeHtml,
-} = __nccwpck_require__(461);
+const { HEADING_LEVEL_2, escapeHtml } = __nccwpck_require__(461);
 class GitHubActionsReporter {
     async reportSuccess() {
         await core.summary
@@ -28782,9 +28779,8 @@ module.exports = GitHubActionsReporter;
 /***/ 3657:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-
-const ConsoleReporter = __nccwpck_require__(1113);
-const GitHubActionsReporter = __nccwpck_require__(2294);
+const ConsoleReporter = __nccwpck_require__(7092);
+const GitHubActionsReporter = __nccwpck_require__(1424);
 
 module.exports = {
     ConsoleReporter,

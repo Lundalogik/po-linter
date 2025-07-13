@@ -1,6 +1,3 @@
-const { readFileSync } = require('node:fs');
-const path = require('node:path');
-
 module.exports = {
     branches: [
         'main',
