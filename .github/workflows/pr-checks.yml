@@ -25,8 +25,20 @@ jobs:
       if: success() || failure()
     - run: npm run lint --if-present
       if: success() || failure()
-    - run: npm test --if-present
+    - run: npm run test:coverage --if-present
       if: success() || failure()
+    - name: Create coverage summary
+      if: success() || failure()
+      uses: fingerprintjs/action-coverage-report-md@72dfb7de7581612640a8e599e918b2eda98f9bba # v2.0.1
+      id: coverage
+      with:
+        textReportPath: coverage/coverage.txt
+        srcBasePath: ./
+    - name: Add coverage summary to job summary
+      if: (success() || failure()) && steps.coverage.outputs.markdownReport
+      run: |
+        echo "## Code Coverage" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.coverage.outputs.markdownReport }}" >> $GITHUB_STEP_SUMMARY
     - name: Build code
       run: npm run build
       if: success() || failure()
