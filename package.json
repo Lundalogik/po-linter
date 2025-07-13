@@ -51,10 +51,11 @@
     "coverageProvider": "v8",
     "coverageReporters": [
       "lcov",
+      "text",
       [
         "text",
         {
-          "path": "./",
+          "path": "./coverage",
           "file": "coverage.txt"
         }
       ]
