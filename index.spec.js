@@ -41,17 +41,20 @@ describe('po-linter', () => {
     });
 
     describe('escapeHtml', () => {
+        let escapeHtml;
+        beforeEach(() => {
+            escapeHtml = require('./constants').escapeHtml;
+        });
+
         it('does not alter a string with no special characters', () => {
-            const linter = new PoLinter();
-            expect(linter.escapeHtml('hello world')).toBe('hello world');
+            expect(escapeHtml('hello world')).toBe('hello world');
         });
 
         it('escapes all special HTML characters', () => {
-            const linter = new PoLinter();
             const unsafe = '<script>alert("XSS & Injection \'FAIL\'")</script>';
             const expected =
                 '&lt;script&gt;alert(&quot;XSS &amp; Injection &#039;FAIL&#039;&quot;)&lt;/script&gt;';
-            expect(linter.escapeHtml(unsafe)).toBe(expected);
+            expect(escapeHtml(unsafe)).toBe(expected);
         });
     });
 
@@ -101,6 +104,7 @@ describe('po-linter', () => {
 
             it('reportFailure sets failed and generates a detailed GitHub Actions summary', async () => {
                 const linter = new PoLinter();
+                const { escapeHtml } = require('./constants');
                 const duplicates = new Map([
                     ['file1.po', new Set(['msgid1', 'msgid2'])],
                     ['file2.po', new Set(['msgid3'])],
@@ -116,9 +120,9 @@ describe('po-linter', () => {
                 expect(core.summary.addDetails).toHaveBeenCalledTimes(2);
                 expect(core.summary.addDetails).toHaveBeenCalledWith(
                     '`file1.po` (2 duplicates)',
-                    `<ul><li><pre><code>${linter.escapeHtml(
+                    `<ul><li><pre><code>${escapeHtml(
                         'msgid1',
-                    )}</code></pre></li><li><pre><code>${linter.escapeHtml(
+                    )}</code></pre></li><li><pre><code>${escapeHtml(
                         'msgid2',
                     )}</code></pre></li></ul>`,
                 );
