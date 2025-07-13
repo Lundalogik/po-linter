@@ -171,6 +171,24 @@ describe('po-linter', () => {
     });
 
     describe('main', () => {
+        it('creates a globber with the correct patterns', async () => {
+            const linter = new PoLinter();
+            glob.create.mockResolvedValue({
+                glob: jest.fn().mockResolvedValue([]),
+            });
+            const expectedPatterns = [
+                '**/*.po',
+                '!**/.git/**',
+                '!**/.github/**',
+                '!**/.venv/**',
+                '!**/node_modules/**',
+            ].join('\n');
+
+            await linter.main();
+
+            expect(glob.create).toHaveBeenCalledWith(expectedPatterns);
+        });
+
         it('reports no files found when glob returns no files', async () => {
             process.env.GITHUB_ACTIONS = 'true';
             const linter = new PoLinter();
