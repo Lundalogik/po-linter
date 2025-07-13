@@ -31,11 +31,12 @@
     "url": "https://github.com/Lundalogik/po-linter/issues"
   },
   "homepage": "https://github.com/Lundalogik/po-linter#readme",
-  "dependencies": {},
   "devDependencies": {
     "@actions/core": "^1.11.1",
     "@actions/glob": "^0.5.0",
     "@vercel/ncc": "^0.38.3",
+    "jest": "^30.0.4",
+    "jest-cli": "^30.0.4",
     "pofile": "^1.1.4"
   }
 }
