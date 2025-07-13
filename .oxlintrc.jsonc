@@ -44,6 +44,22 @@
         "max-lines-per-function": "off",
         "promise/prefer-await-to-callbacks": "off"
       }
+    },
+    {
+      "files": [
+        "commitlint.config.cjs"
+      ],
+      "rules": {
+        "eslint/no-magic-numbers": "off"
+      }
+    },
+    {
+      "files": [
+        "release.config.cjs"
+      ],
+      "rules": {
+        "eslint/no-template-curly-in-string": "off"
+      }
     }
   ]
 }

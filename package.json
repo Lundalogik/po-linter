@@ -14,8 +14,8 @@
   },
   "scripts": {
     "build": "ncc build index.js --license licenses.txt",
-    "lint": "oxlint --config .oxlintrc.jsonc --max-warnings 0 *.js && prettier --check *.js",
-    "lint:fix": "oxlint --config .oxlintrc.jsonc --max-warnings 0 --fix --fix-suggestions *.js && prettier --write *.js",
+    "lint": "oxlint --config .oxlintrc.jsonc --ignore-path=.oxlintignore --max-warnings 0 . && prettier --check \"**/*.js\"",
+    "lint:fix": "oxlint --config .oxlintrc.jsonc --ignore-path=.oxlintignore --max-warnings 0 --fix --fix-suggestions . && prettier --write \"**/*.js\"",
     "start": "npm run build",
     "test": "jest",
     "test:coverage": "jest --coverage"

@@ -1,8 +1,5 @@
 const core = require('@actions/core');
-const {
-    HEADING_LEVEL_2,
-    escapeHtml,
-} = require('../constants');
+const { HEADING_LEVEL_2, escapeHtml } = require('../constants');
 class GitHubActionsReporter {
     async reportSuccess() {
         await core.summary
