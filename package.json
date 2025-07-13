@@ -17,7 +17,8 @@
     "lint": "oxlint --config .oxlintrc.jsonc --max-warnings 0 *.js && prettier --check *.js",
     "lint:fix": "oxlint --config .oxlintrc.jsonc --max-warnings 0 --fix --fix-suggestions *.js && prettier --write *.js",
     "start": "npm run build",
-    "test": "jest"
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [],
   "author": "Lime Technologies",
@@ -45,5 +46,18 @@
     "oxlint": "^1.6.0",
     "pofile": "^1.1.4",
     "prettier": "^3.6.2"
+  },
+  "jest": {
+    "coverageProvider": "v8",
+    "coverageReporters": [
+      "lcov",
+      [
+        "text",
+        {
+          "path": "./",
+          "file": "coverage.txt"
+        }
+      ]
+    ]
   }
 }
