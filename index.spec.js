@@ -50,7 +50,7 @@ describe('po-linter', () => {
             const linter = new PoLinter();
             const unsafe = '<script>alert("XSS & Injection \'FAIL\'")</script>';
             const expected =
-            '&lt;script&gt;alert(&quot;XSS &amp; Injection &#039;FAIL&#039;&quot;)&lt;/script&gt;';
+                '&lt;script&gt;alert(&quot;XSS &amp; Injection &#039;FAIL&#039;&quot;)&lt;/script&gt;';
             expect(linter.escapeHtml(unsafe)).toBe(expected);
         });
     });
@@ -64,16 +64,22 @@ describe('po-linter', () => {
             it('reportSuccess generates a GitHub Actions summary', async () => {
                 const linter = new PoLinter();
                 await linter.reportSuccess();
-                expect(core.summary.addHeading).toHaveBeenCalledWith('✅ No Duplicate `msgid`s Found');
+                expect(core.summary.addHeading).toHaveBeenCalledWith(
+                    '✅ No Duplicate `msgid`s Found',
+                );
                 expect(core.summary.write).toHaveBeenCalled();
-                expect(core.info).toHaveBeenCalledWith('No duplicate msgids found.');
+                expect(core.info).toHaveBeenCalledWith(
+                    'No duplicate msgids found.',
+                );
             });
 
             it('reportNoFilesFound generates a GitHub Actions summary', async () => {
                 const linter = new PoLinter();
                 await linter.reportNoFilesFound();
                 expect(core.info).toHaveBeenCalledWith('No .po files found.');
-                expect(core.summary.addHeading).toHaveBeenCalledWith('No `.po` files found');
+                expect(core.summary.addHeading).toHaveBeenCalledWith(
+                    'No `.po` files found',
+                );
                 expect(core.summary.write).toHaveBeenCalled();
             });
 
@@ -83,10 +89,12 @@ describe('po-linter', () => {
                 error.stack = 'stack trace';
                 await linter.reportFatalError(error);
                 expect(core.setFailed).toHaveBeenCalledWith('test error');
-                expect(core.summary.addHeading).toHaveBeenCalledWith('❗ Error');
+                expect(core.summary.addHeading).toHaveBeenCalledWith(
+                    '❗ Error',
+                );
                 expect(core.summary.addCodeBlock).toHaveBeenCalledWith(
                     'stack trace',
-                    'javascript'
+                    'javascript',
                 );
                 expect(core.summary.write).toHaveBeenCalled();
             });
@@ -99,20 +107,20 @@ describe('po-linter', () => {
                 ]);
                 await linter.reportFailure(duplicates);
                 expect(core.setFailed).toHaveBeenCalledWith(
-                    'Duplicate msgids found in one or more .po files.'
+                    'Duplicate msgids found in one or more .po files.',
                 );
                 expect(core.summary.addHeading).toHaveBeenCalledWith(
                     "❌ Found duplicate msgid's in 2 file(s)",
-                    2
+                    2,
                 );
                 expect(core.summary.addDetails).toHaveBeenCalledTimes(2);
                 expect(core.summary.addDetails).toHaveBeenCalledWith(
                     '`file1.po` (2 duplicates)',
                     `<ul><li><pre><code>${linter.escapeHtml(
-                        'msgid1'
+                        'msgid1',
                     )}</code></pre></li><li><pre><code>${linter.escapeHtml(
-                        'msgid2'
-                    )}</code></pre></li></ul>`
+                        'msgid2',
+                    )}</code></pre></li></ul>`,
                 );
                 expect(core.summary.write).toHaveBeenCalled();
             });
@@ -126,7 +134,9 @@ describe('po-linter', () => {
             it('reportSuccess logs to console', async () => {
                 const linter = new PoLinter();
                 await linter.reportSuccess();
-                expect(console.log).toHaveBeenCalledWith('✅ No duplicate msgids found.');
+                expect(console.log).toHaveBeenCalledWith(
+                    '✅ No duplicate msgids found.',
+                );
             });
 
             it('reportNoFilesFound logs to console', async () => {
@@ -149,7 +159,7 @@ describe('po-linter', () => {
                 const duplicates = new Map([['file1.po', new Set(['msgid1'])]]);
                 await linter.reportFailure(duplicates);
                 expect(console.error).toHaveBeenCalledWith(
-                    "❌ Found duplicate msgid's in 1 file(s)"
+                    "❌ Found duplicate msgid's in 1 file(s)",
                 );
                 expect(process.exit).toHaveBeenCalledWith(1);
             });
@@ -208,7 +218,7 @@ describe('po-linter', () => {
 
             expect(core.setFailed).toHaveBeenCalled();
             expect(core.error).toHaveBeenCalledWith(
-                'Duplicate msgid found in file1.po: "id1"'
+                'Duplicate msgid found in file1.po: "id1"',
             );
         });
 
