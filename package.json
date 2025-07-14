@@ -54,10 +54,7 @@
       "text",
       [
         "text",
-        {
-          "path": "./coverage",
-          "file": "coverage.txt"
-        }
+        { "file": "./coverage.txt" }
       ]
     ]
   }
