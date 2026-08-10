@@ -1,5 +1,6 @@
+// Coerces its input, since anything thrown can end up here, not only strings.
 function escapeHtml(unsafe) {
-    return unsafe
+    return String(unsafe)
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
