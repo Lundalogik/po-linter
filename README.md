@@ -39,6 +39,14 @@ If no duplicate `msgid`s are found, the action will succeed and provide a confir
 
 ![Screenshot of a passing run with no duplicate msgids found](readme-assets/no-duplicate-msgids-found.png)
 
+#### When no `.po` files are found
+
+If the repository contains no `.po` files at all, there is nothing to check. The action succeeds and deliberately adds nothing to the job summary, so it doesn't look like something went wrong. It only writes a line to the workflow log:
+
+```
+No .po files found, nothing to check.
+```
+
 ### As a CLI tool
 
 You can also use this tool from your terminal using `npx`. This is useful for local checks.
@@ -68,6 +76,13 @@ $ npx @limetech/po-linter
 Checking file: src/translations/en.po
 Checking file: src/translations/sv.po
 ✅ No duplicate msgids found.
+```
+
+#### When no `.po` files are found
+
+```bash
+$ npx @limetech/po-linter
+No .po files found, nothing to check.
 ```
 
 ## Inputs
