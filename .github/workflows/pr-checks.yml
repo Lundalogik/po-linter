@@ -11,7 +11,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
       if: success() || failure()
     - name: Block Autosquash Commits
@@ -27,18 +27,20 @@ jobs:
       if: success() || failure()
     - run: npm test --if-present
       if: success() || failure()
-    - name: Create coverage summary
-      if: success() || failure()
-      uses: fingerprintjs/action-coverage-report-md@72dfb7de7581612640a8e599e918b2eda98f9bba # v2.0.1
-      id: coverage
-      with:
-        textReportPath: coverage/coverage.txt
-        srcBasePath: ./
     - name: Add coverage summary to job summary
-      if: (success() || failure()) && steps.coverage.outputs.markdownReport
+      if: success() || failure()
+      shell: bash
       run: |
-        echo "## Code Coverage" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.coverage.outputs.markdownReport }}" >> $GITHUB_STEP_SUMMARY
+        if [[ ! -f coverage/coverage.txt ]]; then
+          echo "::warning::coverage/coverage.txt not found; skipping coverage summary"
+          exit 0
+        fi
+        {
+          echo "## Code Coverage"
+          echo '```'
+          cat coverage/coverage.txt
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
     - name: Build code
       run: npm run build
       if: success() || failure()
