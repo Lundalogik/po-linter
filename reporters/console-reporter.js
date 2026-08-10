@@ -1,11 +1,11 @@
-const { EXIT_CODE_FAILURE } = require('../constants');
+const { EXIT_CODE_FAILURE, NO_FILES_MESSAGE } = require('../constants');
 class ConsoleReporter {
     reportSuccess() {
         console.log('✅ No duplicate msgids found.');
     }
 
     reportNoFilesFound() {
-        console.log('No .po files found.');
+        console.log(NO_FILES_MESSAGE);
     }
 
     reportFailure(allDuplicates) {

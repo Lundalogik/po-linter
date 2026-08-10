@@ -15,8 +15,13 @@ function escapeHtml(unsafe) {
 }
 
 module.exports = {
+    // The job summary is rendered as one contiguous block of HTML, so Markdown
+    // is not processed within it.
+    ATTRIBUTION:
+        '<sub>Reported by <a href="https://github.com/Lundalogik/po-linter">po-linter</a></sub>',
     EXIT_CODE_FAILURE: 1,
     HEADING_LEVEL_2: 2,
+    NO_FILES_MESSAGE: 'No .po files found, nothing to check.',
     escapeHtml,
 };
 
@@ -28666,14 +28671,14 @@ module.exports = {
 /***/ 7092:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const { EXIT_CODE_FAILURE } = __nccwpck_require__(461);
+const { EXIT_CODE_FAILURE, NO_FILES_MESSAGE } = __nccwpck_require__(461);
 class ConsoleReporter {
     reportSuccess() {
         console.log('✅ No duplicate msgids found.');
     }
 
     reportNoFilesFound() {
-        console.log('No .po files found.');
+        console.log(NO_FILES_MESSAGE);
     }
 
     reportFailure(allDuplicates) {
@@ -28709,21 +28714,33 @@ module.exports = ConsoleReporter;
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(7484);
-const { HEADING_LEVEL_2, escapeHtml } = __nccwpck_require__(461);
+const {
+    ATTRIBUTION,
+    HEADING_LEVEL_2,
+    NO_FILES_MESSAGE,
+    escapeHtml,
+} = __nccwpck_require__(461);
+
+function addAttribution(summary) {
+    return summary.addSeparator().addRaw(ATTRIBUTION);
+}
+
 class GitHubActionsReporter {
     async reportSuccess() {
-        await core.summary
-            .addHeading('✅ No Duplicate `msgid`s Found')
+        const summary = core.summary
+            .addHeading('✅ No Duplicate `msgid`s Found', HEADING_LEVEL_2)
             .addRaw(
                 'All `.po` files were checked and no duplicate `msgid`s were found.',
-            )
-            .write();
+            );
+        await addAttribution(summary).write();
         core.info('No duplicate msgids found.');
     }
 
-    async reportNoFilesFound() {
-        core.info('No .po files found.');
-        await core.summary.addHeading('No `.po` files found').write();
+    reportNoFilesFound() {
+        // Deliberately not written to the job summary: having nothing to check
+        // is a non-event, and a summary makes it look like something went
+        // wrong.
+        core.info(NO_FILES_MESSAGE);
     }
 
     async reportFailure(allDuplicates) {
@@ -28750,19 +28767,19 @@ class GitHubActionsReporter {
             );
         }
 
-        await summary.write();
+        await addAttribution(summary).write();
         core.setFailed('Duplicate msgids found in one or more .po files.');
     }
 
     async reportFatalError(error) {
         core.setFailed(error.message);
-        await core.summary
-            .addHeading('❗ Error')
+        const summary = core.summary
+            .addHeading('❗ Error', HEADING_LEVEL_2)
             .addRaw(
                 'An unexpected error occurred while checking for duplicate `msgid`s.',
             )
-            .addCodeBlock(error.stack || error.message, 'javascript')
-            .write();
+            .addCodeBlock(error.stack || error.message, 'javascript');
+        await addAttribution(summary).write();
     }
 
     reportDuplicate(file, msgid) {

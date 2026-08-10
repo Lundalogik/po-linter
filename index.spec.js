@@ -69,6 +69,7 @@ describe('po-linter', () => {
                 await linter.reportSuccess();
                 expect(core.summary.addHeading).toHaveBeenCalledWith(
                     '✅ No Duplicate `msgid`s Found',
+                    2,
                 );
                 expect(core.summary.write).toHaveBeenCalled();
                 expect(core.info).toHaveBeenCalledWith(
@@ -76,14 +77,23 @@ describe('po-linter', () => {
                 );
             });
 
-            it('reportNoFilesFound generates a GitHub Actions summary', async () => {
+            it('reportSuccess attributes the summary to po-linter', async () => {
+                const linter = new PoLinter();
+                await linter.reportSuccess();
+                expect(core.summary.addRaw).toHaveBeenCalledWith(
+                    '<sub>Reported by <a href="https://github.com/Lundalogik/po-linter">po-linter</a></sub>',
+                );
+            });
+
+            it('reportNoFilesFound logs without generating a GitHub Actions summary', async () => {
                 const linter = new PoLinter();
                 await linter.reportNoFilesFound();
-                expect(core.info).toHaveBeenCalledWith('No .po files found.');
-                expect(core.summary.addHeading).toHaveBeenCalledWith(
-                    'No `.po` files found',
+                expect(core.info).toHaveBeenCalledWith(
+                    'No .po files found, nothing to check.',
                 );
-                expect(core.summary.write).toHaveBeenCalled();
+                expect(core.summary.addHeading).not.toHaveBeenCalled();
+                expect(core.summary.addRaw).not.toHaveBeenCalled();
+                expect(core.summary.write).not.toHaveBeenCalled();
             });
 
             it('reportFatalError sets failed and generates a GitHub Actions summary', async () => {
@@ -94,12 +104,21 @@ describe('po-linter', () => {
                 expect(core.setFailed).toHaveBeenCalledWith('test error');
                 expect(core.summary.addHeading).toHaveBeenCalledWith(
                     '❗ Error',
+                    2,
                 );
                 expect(core.summary.addCodeBlock).toHaveBeenCalledWith(
                     'stack trace',
                     'javascript',
                 );
                 expect(core.summary.write).toHaveBeenCalled();
+            });
+
+            it('reportFatalError attributes the summary to po-linter', async () => {
+                const linter = new PoLinter();
+                await linter.reportFatalError(new Error('test error'));
+                expect(core.summary.addRaw).toHaveBeenCalledWith(
+                    '<sub>Reported by <a href="https://github.com/Lundalogik/po-linter">po-linter</a></sub>',
+                );
             });
 
             it('reportFailure sets failed and generates a detailed GitHub Actions summary', async () => {
@@ -128,6 +147,15 @@ describe('po-linter', () => {
                 );
                 expect(core.summary.write).toHaveBeenCalled();
             });
+
+            it('reportFailure attributes the summary to po-linter', async () => {
+                const linter = new PoLinter();
+                const duplicates = new Map([['file1.po', new Set(['msgid1'])]]);
+                await linter.reportFailure(duplicates);
+                expect(core.summary.addRaw).toHaveBeenCalledWith(
+                    '<sub>Reported by <a href="https://github.com/Lundalogik/po-linter">po-linter</a></sub>',
+                );
+            });
         });
 
         describe('without GITHUB_ACTIONS', () => {
@@ -146,7 +174,9 @@ describe('po-linter', () => {
             it('reportNoFilesFound logs to console', async () => {
                 const linter = new PoLinter();
                 await linter.reportNoFilesFound();
-                expect(console.log).toHaveBeenCalledWith('No .po files found.');
+                expect(console.log).toHaveBeenCalledWith(
+                    'No .po files found, nothing to check.',
+                );
             });
 
             it('reportFatalError logs to console and exits', async () => {
@@ -197,7 +227,9 @@ describe('po-linter', () => {
             });
 
             await linter.main();
-            expect(core.info).toHaveBeenCalledWith('No .po files found.');
+            expect(core.info).toHaveBeenCalledWith(
+                'No .po files found, nothing to check.',
+            );
         });
 
         it('reports success when no duplicates are found', async () => {

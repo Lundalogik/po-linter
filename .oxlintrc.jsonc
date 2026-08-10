@@ -38,6 +38,7 @@
       ],
       "rules": {
         "eslint/init-declarations": "off",
+        "eslint/max-lines": "off",
         "eslint/no-magic-numbers": "off",
         "eslint/sort-keys": "off",
         "eslint/sort-vars": "off",
