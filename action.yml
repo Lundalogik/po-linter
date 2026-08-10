@@ -3,7 +3,7 @@ description: 'Checks for duplicate msgids in .po files to prevent translation is
 author: 'Lime Technologies'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
 
 branding:
