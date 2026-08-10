@@ -56,6 +56,15 @@ describe('po-linter', () => {
                 '&lt;script&gt;alert(&quot;XSS &amp; Injection &#039;FAIL&#039;&quot;)&lt;/script&gt;';
             expect(escapeHtml(unsafe)).toBe(expected);
         });
+
+        it('coerces input that is not a string', () => {
+            expect(escapeHtml(42)).toBe('42');
+            // `undefined` is the value that actually reaches this function
+            // when a thrown value has no `stack` or `message`, so it is worth
+            // asserting explicitly.
+            // eslint-disable-next-line unicorn/no-useless-undefined
+            expect(escapeHtml(undefined)).toBe('undefined');
+        });
     });
 
     describe('reporters', () => {
@@ -68,8 +77,11 @@ describe('po-linter', () => {
                 const linter = new PoLinter();
                 await linter.reportSuccess();
                 expect(core.summary.addHeading).toHaveBeenCalledWith(
-                    '✅ No Duplicate `msgid`s Found',
+                    '✅ No Duplicate <code>msgid</code>s Found',
                     2,
+                );
+                expect(core.summary.addRaw).toHaveBeenCalledWith(
+                    'All <code>.po</code> files were checked and no duplicate <code>msgid</code>s were found.',
                 );
                 expect(core.summary.write).toHaveBeenCalled();
                 expect(core.info).toHaveBeenCalledWith(
@@ -106,8 +118,46 @@ describe('po-linter', () => {
                     '❗ Error',
                     2,
                 );
+                expect(core.summary.addRaw).toHaveBeenCalledWith(
+                    'An unexpected error occurred while checking for duplicate <code>msgid</code>s.',
+                );
                 expect(core.summary.addCodeBlock).toHaveBeenCalledWith(
                     'stack trace',
+                    'javascript',
+                );
+                expect(core.summary.write).toHaveBeenCalled();
+            });
+
+            it('reportFatalError escapes HTML in the stack trace', async () => {
+                const linter = new PoLinter();
+                const error = new Error('test error');
+                error.stack = 'Error: cannot read <config>';
+                await linter.reportFatalError(error);
+                expect(core.summary.addCodeBlock).toHaveBeenCalledWith(
+                    'Error: cannot read &lt;config&gt;',
+                    'javascript',
+                );
+            });
+
+            it('reportFatalError falls back to the escaped error message', async () => {
+                const linter = new PoLinter();
+                const error = new Error('cannot read <config>');
+                error.stack = undefined;
+                await linter.reportFatalError(error);
+                expect(core.summary.addCodeBlock).toHaveBeenCalledWith(
+                    'cannot read &lt;config&gt;',
+                    'javascript',
+                );
+            });
+
+            it('reportFatalError reports a thrown value that is not an Error', async () => {
+                const linter = new PoLinter();
+                await linter.reportFatalError('boom: a thrown string');
+                expect(core.setFailed).toHaveBeenCalledWith(
+                    'boom: a thrown string',
+                );
+                expect(core.summary.addCodeBlock).toHaveBeenCalledWith(
+                    'boom: a thrown string',
                     'javascript',
                 );
                 expect(core.summary.write).toHaveBeenCalled();
@@ -136,9 +186,12 @@ describe('po-linter', () => {
                     "❌ Found duplicate msgid's in 2 file(s)",
                     2,
                 );
+                expect(core.summary.addRaw).toHaveBeenCalledWith(
+                    'The following files contain duplicate <code>msgid</code> entries. This can cause issues with translations. Please resolve them.',
+                );
                 expect(core.summary.addDetails).toHaveBeenCalledTimes(2);
                 expect(core.summary.addDetails).toHaveBeenCalledWith(
-                    '`file1.po` (2 duplicates)',
+                    '<code>file1.po</code> (2 duplicates)',
                     `<ul><li><pre><code>${escapeHtml(
                         'msgid1',
                     )}</code></pre></li><li><pre><code>${escapeHtml(
@@ -146,6 +199,18 @@ describe('po-linter', () => {
                     )}</code></pre></li></ul>`,
                 );
                 expect(core.summary.write).toHaveBeenCalled();
+            });
+
+            it('reportFailure escapes HTML in file names', async () => {
+                const linter = new PoLinter();
+                const duplicates = new Map([
+                    ['<script>.po', new Set(['msgid1'])],
+                ]);
+                await linter.reportFailure(duplicates);
+                expect(core.summary.addDetails).toHaveBeenCalledWith(
+                    '<code>&lt;script&gt;.po</code> (1 duplicates)',
+                    expect.any(String),
+                );
             });
 
             it('reportFailure attributes the summary to po-linter', async () => {
@@ -284,6 +349,19 @@ describe('po-linter', () => {
             await linter.main();
             expect(console.error).toHaveBeenCalledWith('❗ Error');
             expect(console.error).toHaveBeenCalledWith(error);
+        });
+
+        it('handles a non-Error thrown during glob creation', async () => {
+            process.env.GITHUB_ACTIONS = 'true';
+            const linter = new PoLinter();
+            glob.create.mockRejectedValue('boom: a thrown string');
+
+            await linter.main();
+
+            expect(core.setFailed).toHaveBeenCalledWith(
+                'boom: a thrown string',
+            );
+            expect(core.summary.write).toHaveBeenCalled();
         });
 
         it('handles errors during pofile loading', async () => {

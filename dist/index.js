@@ -5,8 +5,9 @@
 /***/ 461:
 /***/ ((module) => {
 
+// Coerces its input, since anything thrown can end up here, not only strings.
 function escapeHtml(unsafe) {
-    return unsafe
+    return String(unsafe)
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
@@ -28728,9 +28729,12 @@ function addAttribution(summary) {
 class GitHubActionsReporter {
     async reportSuccess() {
         const summary = core.summary
-            .addHeading('✅ No Duplicate `msgid`s Found', HEADING_LEVEL_2)
+            .addHeading(
+                '✅ No Duplicate <code>msgid</code>s Found',
+                HEADING_LEVEL_2,
+            )
             .addRaw(
-                'All `.po` files were checked and no duplicate `msgid`s were found.',
+                'All <code>.po</code> files were checked and no duplicate <code>msgid</code>s were found.',
             );
         await addAttribution(summary).write();
         core.info('No duplicate msgids found.');
@@ -28750,7 +28754,7 @@ class GitHubActionsReporter {
                 HEADING_LEVEL_2,
             )
             .addRaw(
-                `The following files contain duplicate \`msgid\` entries. This can cause issues with translations. Please resolve them.`,
+                'The following files contain duplicate <code>msgid</code> entries. This can cause issues with translations. Please resolve them.',
             )
             .addSeparator();
 
@@ -28762,7 +28766,7 @@ class GitHubActionsReporter {
                 )
                 .join('');
             summary.addDetails(
-                `\`${file}\` (${duplicates.size} duplicates)`,
+                `<code>${escapeHtml(file)}</code> (${duplicates.size} duplicates)`,
                 `<ul>${listItems}</ul>`,
             );
         }
@@ -28772,13 +28776,18 @@ class GitHubActionsReporter {
     }
 
     async reportFatalError(error) {
-        core.setFailed(error.message);
+        // Anything can be thrown, not just an `Error`, so fall back to the
+        // thrown value itself rather than reporting nothing.
+        const message = error?.message || String(error);
+        const details = error?.stack || message;
+
+        core.setFailed(message);
         const summary = core.summary
             .addHeading('❗ Error', HEADING_LEVEL_2)
             .addRaw(
-                'An unexpected error occurred while checking for duplicate `msgid`s.',
+                'An unexpected error occurred while checking for duplicate <code>msgid</code>s.',
             )
-            .addCodeBlock(error.stack || error.message, 'javascript');
+            .addCodeBlock(escapeHtml(details), 'javascript');
         await addAttribution(summary).write();
     }
 
