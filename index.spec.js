@@ -40,6 +40,33 @@ describe('po-linter', () => {
         jest.restoreAllMocks();
     });
 
+    const ATTRIBUTION_HTML =
+        '<sub>Reported by <a href="https://github.com/Lundalogik/po-linter">po-linter</a></sub>';
+
+    // Every `core.summary` method that appends to the summary. `write` is
+    // excluded, since it flushes the buffer rather than adding to it.
+    const SUMMARY_CONTENT_METHODS = [
+        'addHeading',
+        'addRaw',
+        'addSeparator',
+        'addDetails',
+        'addCodeBlock',
+    ];
+
+    // The attribution is a footer, so asserting that it was added is not
+    // enough: it also has to be the last thing added.
+    function expectAttributionAddedLast() {
+        expect(core.summary.addRaw).toHaveBeenLastCalledWith(ATTRIBUTION_HTML);
+
+        const attributionCall =
+            core.summary.addRaw.mock.invocationCallOrder.at(-1);
+        const callsAfterAttribution = SUMMARY_CONTENT_METHODS.flatMap(
+            (method) => core.summary[method].mock.invocationCallOrder,
+        ).filter((call) => call > attributionCall);
+
+        expect(callsAfterAttribution).toEqual([]);
+    }
+
     describe('escapeHtml', () => {
         let escapeHtml;
         beforeEach(() => {
@@ -89,12 +116,10 @@ describe('po-linter', () => {
                 );
             });
 
-            it('reportSuccess attributes the summary to po-linter', async () => {
+            it('reportSuccess adds the po-linter attribution last', async () => {
                 const linter = new PoLinter();
                 await linter.reportSuccess();
-                expect(core.summary.addRaw).toHaveBeenCalledWith(
-                    '<sub>Reported by <a href="https://github.com/Lundalogik/po-linter">po-linter</a></sub>',
-                );
+                expectAttributionAddedLast();
             });
 
             it('reportNoFilesFound logs without generating a GitHub Actions summary', async () => {
@@ -163,12 +188,10 @@ describe('po-linter', () => {
                 expect(core.summary.write).toHaveBeenCalled();
             });
 
-            it('reportFatalError attributes the summary to po-linter', async () => {
+            it('reportFatalError adds the po-linter attribution last', async () => {
                 const linter = new PoLinter();
                 await linter.reportFatalError(new Error('test error'));
-                expect(core.summary.addRaw).toHaveBeenCalledWith(
-                    '<sub>Reported by <a href="https://github.com/Lundalogik/po-linter">po-linter</a></sub>',
-                );
+                expectAttributionAddedLast();
             });
 
             it('reportFailure sets failed and generates a detailed GitHub Actions summary', async () => {
@@ -213,13 +236,11 @@ describe('po-linter', () => {
                 );
             });
 
-            it('reportFailure attributes the summary to po-linter', async () => {
+            it('reportFailure adds the po-linter attribution last', async () => {
                 const linter = new PoLinter();
                 const duplicates = new Map([['file1.po', new Set(['msgid1'])]]);
                 await linter.reportFailure(duplicates);
-                expect(core.summary.addRaw).toHaveBeenCalledWith(
-                    '<sub>Reported by <a href="https://github.com/Lundalogik/po-linter">po-linter</a></sub>',
-                );
+                expectAttributionAddedLast();
             });
         });
 
