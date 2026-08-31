@@ -15,18 +15,28 @@ jobs:
   semantic-release:
     name: Run Semantic Release
     runs-on: ubuntu-latest
+    # npm trusted publishing needs an OIDC token from GitHub Actions.
+    permissions:
+      contents: read
+      id-token: write
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
 
+    # Trusted publishing is done by `npm publish`, which needs npm >= 11.5.1 --
+    # first bundled with Node 24.5. semantic-release itself runs on this Node too.
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      with:
+        node-version: 24
+        registry-url: https://registry.npmjs.org
+
     - name: Semantic Release
       uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
       with:
-        semantic_version: 24.2.6
+        semantic_version: 25
         extra_plugins: |
           conventional-changelog-conventionalcommits@9.1.0
           semantic-release-major-tag@0.3.2
       env:
         GITHUB_TOKEN: ${{ secrets.CREATE_RELEASE }}
-        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
