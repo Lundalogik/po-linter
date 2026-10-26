@@ -14,7 +14,7 @@ on:
 jobs:
   semantic-release:
     name: Run Semantic Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # npm trusted publishing needs an OIDC token from GitHub Actions.
     permissions:
       contents: read
